@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BIMS — Paso 3</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F5F5F5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .page { width: 100%; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+    .step-label { font-size: 12px; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .page-title { font-size: 22px; font-weight: 500; color: #1a1a1a; margin-bottom: 4px; }
+    .page-desc { font-size: 14px; color: #888; margin-bottom: 1rem; line-height: 1.5; }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 0.5px solid rgba(0,0,0,0.1);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .field label, .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+    .field-hint { font-size: 12px; color: #aaa; margin-bottom: 8px; }
+
+    /* Input teléfono */
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      border: 1px solid rgba(0,0,0,0.15);
+      border-radius: 8px;
+      height: 36px;
+      background: #fff;
+      position: relative;
+    }
+    .input-wrap input {
+      border: none; outline: none; font-size: 14px;
+      flex: 1; background: transparent;
+      color: #1a1a1a; font-family: inherit;
+      padding: 0 10px;
+    }
+
+    /* Country picker */
+    .country-trigger {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 10px;
+      height: 100%;
+      cursor: pointer;
+      border-right: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 8px 0 0 8px;
+      transition: background 0.1s;
+      white-space: nowrap;
+      position: relative;
+      user-select: none;
+    }
+    .country-trigger:hover { background: #f5f4f0; }
+    .country-flag { font-size: 16px; line-height: 1; }
+    .country-code { font-size: 13px; color: #444; }
+    .chevron { font-size: 10px; color: #999; transition: transform 0.15s; }
+    .chevron.open { transform: rotate(180deg); }
+
+    .country-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.15);
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      width: 220px;
+      z-index: 100;
+      overflow: hidden;
+    }
+    .country-dropdown.open { display: block; }
+    .country-search {
+      width: 100%; border: none;
+      border-bottom: 0.5px solid rgba(0,0,0,0.08);
+      padding: 8px 12px; font-size: 13px;
+      outline: none; font-family: inherit;
+      color: #1a1a1a; background: #fafafa;
+    }
+    .country-list { max-height: 200px; overflow-y: auto; }
+    .country-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; cursor: pointer;
+      font-size: 13px; color: #1a1a1a; transition: background 0.1s;
+    }
+    .country-item:hover { background: #f5f4f0; }
+    .country-item.active { background: #D6E9FF; color: #1a1a1a; }
+    .country-item .flag { font-size: 16px; }
+    .country-item .name { flex: 1; }
+    .country-item .code { color: #888; font-size: 12px; }
+
+    /* Button group */
+    .btn-group { display: flex; gap: 8px; }
+    .btn-option {
+      flex: 1; padding: 7px 10px;
+      border-radius: 8px; border: 1px solid rgba(0,0,0,0.15);
+      background: #fff; font-size: 13px; color: #555;
+      cursor: pointer; font-family: inherit; text-align: center;
+      transition: all 0.12s;
+    }
+    .btn-option:hover { background: #F5F4F0; }
+    .btn-option.selected {
+      background: #D6E9FF;
+      border-color: #1d85fc; border-width: 1px;
+      color: #252529;
+      font-weight: 500;
+    }
+
+    /* Chips */
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.15);
+      background: #fff; font-size: 13px; color: #1a1a1a;
+      cursor: pointer; user-select: none; font-family: inherit;
+      transition: all 0.12s;
+    }
+    .chip:hover { background: #F5F4F0; }
+    .chip.selected {
+      background: #D6E9FF;
+      border-color: #1d85fc; border-width: 1px;
+      color: #252529;
+    }
+    .chip svg.icon { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .chip .check { visibility: hidden; width: 13px; height: 13px; flex-shrink: 0; }
+    .chip.selected .check { visibility: visible; }
+
+    /* Radio */
+    .radio-group { display: flex; gap: 16px; }
+    .radio-group label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; color: #1a1a1a; cursor: pointer; font-weight: 400;
+    }
+
+    /* Footer — fuera de la card */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-back {
+      background: transparent; border: 1px solid rgba(0,0,0,0.15);
+      border-radius: 8px; padding: 7px 16px; font-size: 14px;
+      cursor: pointer; color: #1a1a1a; font-family: inherit;
+    }
+    .btn-back:hover { background: #ebebeb; }
+    .btn-continuar {
+      background: #252529; border: none; border-radius: 8px;
+      padding: 7px 20px; font-size: 14px; cursor: pointer;
+      color: #fff; font-family: inherit; transition: opacity 0.15s;
+    }
+    .btn-continuar:disabled { opacity: 0.35; cursor: default; }
+    .btn-continuar:not(:disabled):hover { opacity: 0.85; }
+
+    hr { border: none; border-top: 0.5px solid rgba(0,0,0,0.07); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div>
+      <p class="step-label">Paso 3 de 6</p>
+      <p class="page-title">Ya casi terminamos</p>
+      <p class="page-desc">Contanos un poco más sobre tu empresa para personalizar tu experiencia en BIMS.</p>
+    </div>
+
+    <div class="card">
+
+      <!-- Teléfono -->
+      <div class="field">
+        <label>Número de celular</label>
+        <div class="input-wrap" id="phone-wrap">
+          <div class="country-trigger" id="country-trigger">
+            <span class="country-flag" id="selected-flag">🇵🇾</span>
+            <span class="country-code" id="selected-code">+595</span>
+            <span class="chevron" id="chevron">▾</span>
+          </div>
+          <div class="country-dropdown" id="country-dropdown">
+            <input class="country-search" id="country-search" placeholder="Buscar país..." />
+            <div class="country-list" id="country-list"></div>
+          </div>
+          <input type="tel" placeholder="Ingresá tu número" />
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Rubro -->
+      <div class="field">
+        <label>¿A qué se dedica tu empresa?</label>
+        <div class="btn-group" id="rubro">
+          <button class="btn-option" data-val="comercio">Comercio</button>
+          <button class="btn-option" data-val="servicios">Servicios</button>
+          <button class="btn-option" data-val="industria">Industria</button>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Chips -->
+      <div class="field">
+        <div class="field-label">¿Qué te gustaría gestionar con BIMS?</div>
+        <p class="field-hint">Podés elegir más de una opción.</p>
+        <div class="chips" id="chips"></div>
+      </div>
+
+      <hr />
+
+      <!-- Facturas -->
+      <div class="field">
+        <label>¿Emitís facturas electrónicas?</label>
+        <div class="radio-group">
+          <label><input type="radio" name="facturas" /> Sí</label>
+          <label><input type="radio" name="facturas" /> No</label>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer fuera de la card -->
+    <div class="footer">
+      <button class="btn-back">Atrás</button>
+      <button class="btn-continuar" id="continuar" disabled>Continuar</button>
+    </div>
+
+  </div>
+
+  <script>
+    const countries = [
+      { flag: "🇵🇾", name: "Paraguay",   code: "+595" },
+      { flag: "🇦🇷", name: "Argentina",  code: "+54"  },
+      { flag: "🇧🇷", name: "Brasil",     code: "+55"  },
+      { flag: "🇺🇾", name: "Uruguay",    code: "+598" },
+      { flag: "🇧🇴", name: "Bolivia",    code: "+591" },
+      { flag: "🇨🇱", name: "Chile",      code: "+56"  },
+      { flag: "🇵🇪", name: "Perú",       code: "+51"  },
+      { flag: "🇨🇴", name: "Colombia",   code: "+57"  },
+      { flag: "🇲🇽", name: "México",     code: "+52"  },
+      { flag: "🇪🇸", name: "España",     code: "+34"  },
+      { flag: "🇺🇸", name: "EE.UU.",     code: "+1"   },
+    ];
+
+    let selectedCountry = countries[0];
+    const trigger = document.getElementById("country-trigger");
+    const dropdown = document.getElementById("country-dropdown");
+    const chevron = document.getElementById("chevron");
+    const searchInput = document.getElementById("country-search");
+    const listEl = document.getElementById("country-list");
+
+    function renderList(filter = "") {
+      listEl.innerHTML = "";
+      countries
+        .filter(c => c.name.toLowerCase().includes(filter.toLowerCase()) || c.code.includes(filter))
+        .forEach(c => {
+          const item = document.createElement("div");
+          item.className = "country-item" + (c.code === selectedCountry.code ? " active" : "");
+          item.innerHTML = `<span class="flag">${c.flag}</span><span class="name">${c.name}</span><span class="code">${c.code}</span>`;
+          item.addEventListener("click", () => {
+            selectedCountry = c;
+            document.getElementById("selected-flag").textContent = c.flag;
+            document.getElementById("selected-code").textContent = c.code;
+            closeDropdown();
+          });
+          listEl.appendChild(item);
+        });
+    }
+
+    function openDropdown() {
+      dropdown.classList.add("open");
+      chevron.classList.add("open");
+      searchInput.value = "";
+      renderList();
+      setTimeout(() => searchInput.focus(), 50);
+    }
+    function closeDropdown() {
+      dropdown.classList.remove("open");
+      chevron.classList.remove("open");
+    }
+
+    trigger.addEventListener("click", e => { e.stopPropagation(); dropdown.classList.contains("open") ? closeDropdown() : openDropdown(); });
+    searchInput.addEventListener("input", () => renderList(searchInput.value));
+    searchInput.addEventListener("click", e => e.stopPropagation());
+    document.addEventListener("click", closeDropdown);
+    renderList();
+
+    // Rubro
+    const rubroContainer = document.getElementById("rubro");
+    let rubroSelected = null;
+    rubroContainer.querySelectorAll(".btn-option").forEach(btn => {
+      btn.addEventListener("click", () => {
+        rubroContainer.querySelectorAll(".btn-option").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        rubroSelected = btn.dataset.val;
+        checkContinuar();
+      });
+    });
+
+    // Chips
+    const icons = {
+      package:    `<svg class="icon" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5"/><path d="M12 12l8 -4.5"/><path d="M12 12l0 9"/><path d="M12 12l-8 -4.5"/><path d="M16 5.25l-8 4.5"/></svg>`,
+      invoice:    `<svg class="icon" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/><path d="M9 7l1 0"/><path d="M9 13l6 0"/><path d="M13 17l2 0"/></svg>`,
+      truck:      `<svg class="icon" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M15 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M5 17h-2v-11a1 1 0 0 1 1 -1h9v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5"/></svg>`,
+      calculator: `<svg class="icon" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 5a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -14"/><path d="M8 8a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v1a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1l0 -1"/><path d="M8 14l0 .01"/><path d="M12 14l0 .01"/><path d="M16 14l0 .01"/><path d="M8 17l0 .01"/><path d="M12 17l0 .01"/><path d="M16 17l0 .01"/></svg>`,
+      settings:   `<svg class="icon" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.875 6.27a2.225 2.225 0 0 1 1.125 1.948v7.284c0 .809 -.443 1.555 -1.158 1.948l-6.75 4.27a2.269 2.269 0 0 1 -2.184 0l-6.75 -4.27a2.225 2.225 0 0 1 -1.158 -1.948v-7.285c0 -.809 .443 -1.554 1.158 -1.947l6.75 -3.98a2.33 2.33 0 0 1 2.25 0l6.75 3.98h-.033"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>`,
+      building:   `<svg class="icon" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0"/><path d="M9 8l1 0"/><path d="M9 12l1 0"/><path d="M9 16l1 0"/><path d="M14 8l1 0"/><path d="M14 12l1 0"/><path d="M14 16l1 0"/><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16"/></svg>`,
+      ship:       `<svg class="icon" viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 20a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1"/><path d="M4 18l-1 -5h18l-2 4"/><path d="M5 13v-6h8l4 6"/><path d="M7 7v-4h-1"/></svg>`,
+    };
+    const checkSvg = `<svg class="check" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#1d85fc"/><path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const opciones = [
+      { label: "Control de stock",    icon: "package" },
+      { label: "Emisión de facturas", icon: "invoice" },
+      { label: "Gestión de compras",  icon: "truck" },
+      { label: "Gestión contable",    icon: "calculator" },
+      { label: "Producción",          icon: "settings" },
+      { label: "Bienes raíces",       icon: "building" },
+      { label: "Importación",         icon: "ship" },
+    ];
+    const chipsContainer = document.getElementById("chips");
+    const selectedChips = new Set();
+    opciones.forEach((op, i) => {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.innerHTML = `${icons[op.icon]}${op.label}${checkSvg}`;
+      chip.addEventListener("click", () => {
+        if (selectedChips.has(i)) { selectedChips.delete(i); chip.classList.remove("selected"); }
+        else { selectedChips.add(i); chip.classList.add("selected"); }
+        checkContinuar();
+      });
+      chipsContainer.appendChild(chip);
+    });
+
+    const continuar = document.getElementById("continuar");
+    function checkContinuar() {
+      continuar.disabled = !(rubroSelected && selectedChips.size > 0);
+    }
+  </script>
+</body>
+</html>
