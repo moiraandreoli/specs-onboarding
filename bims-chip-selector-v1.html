@@ -175,6 +175,71 @@
     .btn-continuar:not(:disabled):hover { opacity: 0.85; }
 
     hr { border: none; border-top: 0.5px solid rgba(0,0,0,0.07); }
+
+    /* Tooltip */
+    .tooltip-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .tooltip-icon {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      border: 1px solid #bbb;
+      color: #888;
+      font-size: 10px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+      user-select: none;
+      margin-left: 5px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .tooltip-icon:hover { border-color: #1d85fc; color: #1d85fc; }
+    .tooltip-box {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #252529;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      width: 260px;
+      font-size: 12px;
+      line-height: 1.5;
+      z-index: 200;
+      pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .tooltip-box::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #252529;
+    }
+    .tooltip-box strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .tooltip-wrap:hover .tooltip-box { display: block; }
+
+    .label-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .label-row label { margin-bottom: 0; }
   </style>
 </head>
 <body>
@@ -229,7 +294,16 @@
 
       <!-- Facturas -->
       <div class="field">
-        <label>¿Emitís facturas electrónicas?</label>
+        <div class="label-row">
+          <label>¿Emitís facturas electrónicas?</label>
+          <div class="tooltip-wrap">
+            <span class="tooltip-icon">?</span>
+            <div class="tooltip-box">
+              <strong>Facturación Electrónica</strong>
+              El SIFEN (Sistema Integrado de Facturación Electrónica Nacional) de la DNIT permite emitir facturas, notas de crédito y débito en formato digital, con validez legal sin papel.
+            </div>
+          </div>
+        </div>
         <div class="radio-group">
           <label><input type="radio" name="facturas" /> Sí</label>
           <label><input type="radio" name="facturas" /> No</label>
